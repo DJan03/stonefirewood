@@ -55,9 +55,32 @@ typedef struct Sentity
 	int y;
 } Tentity;
 
+int inventory_id = 0;
+
 Tenviroment enviroment_map[MAP_HEIGHT][MAP_WIDTH];
 
 Tentity entity_map[ENTITY_CAPACITY];
+
+void SetCursorPosition(int x, int y)
+{
+	COORD coord = {0};
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(MY_HANDLE, coord);
+}
+
+void SetWindowSize()
+{
+	COORD coord = {};
+	coord.X = (SHORT)(CONSOLE_WIDTH) + 2;
+	coord.Y = (SHORT)(CONSOLE_HEIGHT);
+	SetConsoleScreenBufferSize(MY_HANDLE, coord);
+
+	SMALL_RECT rect = {};
+	rect.Bottom = coord.Y;
+	rect.Right = coord.X;
+	SetConsoleWindowInfo(MY_HANDLE, TRUE, &rect);
+}
 
 void BuildEnviromentMap()
 {
@@ -103,6 +126,7 @@ int IsEntityCell(int x, int y)
 
 void PrintEnviromentMap()
 {
+	SetCursorPosition(0, 6);
 	int entity_id;
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
@@ -164,29 +188,9 @@ void UpdateEntities()
 	}
 }
 
-void SetCursorPosition(int x, int y)
-{
-	COORD coord = {0};
-	coord.X = x;
-	coord.Y = y;
-	SetConsoleCursorPosition(MY_HANDLE, coord);
-}
-
-void SetWindowSize()
-{
-	COORD coord = {};
-	coord.X = (SHORT)(CONSOLE_WIDTH) + 2;
-	coord.Y = (SHORT)(CONSOLE_HEIGHT);
-	SetConsoleScreenBufferSize(MY_HANDLE, coord);
-
-	SMALL_RECT rect = {};
-	rect.Bottom = coord.Y;
-	rect.Right = coord.X;
-	SetConsoleWindowInfo(MY_HANDLE, TRUE, &rect);
-}
-
 void PrintUI()
 {
+	SetCursorPosition(0, 0);
 	for (int i = 0; i < 6; i++)
 	{
 		for (int j = 0; j < MAP_WIDTH; j++)
@@ -203,6 +207,17 @@ void PrintUI()
 		}
 		PrintSymbol('\n', WHITE);
 	}
+
+	for (int i = 0; i < 8; i++)
+	{
+		SetCursorPosition(3 + i % 4 * 2, 2 + i / 4);
+		PrintSymbol('.', WHITE);
+	}
+
+	SetCursorPosition(2 + inventory_id % 4 * 2, 2 + inventory_id / 4);
+	PrintSymbol('[', WHITE);
+	SetCursorPosition(2 + inventory_id % 4 * 2 + 2, 2 + inventory_id / 4);
+	PrintSymbol(']', WHITE);
 }
 
 int main()
@@ -218,7 +233,6 @@ int main()
 
 	while (GetKeyState(VK_ESCAPE) >= 0)
 	{
-		SetCursorPosition(0, 0);
 		PrintUI();
 		PrintEnviromentMap();
 
@@ -226,6 +240,8 @@ int main()
 		if (GetAsyncKeyState(VK_S)) MoveEntity(&entity_map[0], 0, 1);
 		if (GetAsyncKeyState(VK_A)) MoveEntity(&entity_map[0], -1, 0);
 		if (GetAsyncKeyState(VK_D)) MoveEntity(&entity_map[0], 1, 0);
+
+		if (GetAsyncKeyState(VK_TAB)) inventory_id = (inventory_id + 1) % 8;
 
 		UpdateEntities();
 	}
