@@ -31,6 +31,14 @@
 
 #define ENTITY_CAPACITY 5
 
+typedef struct Ssprite
+{
+	char symbol;
+	int color;
+} Tsprite;
+
+Tsprite MY_BUFFER[CONSOLE_HEIGHT][CONSOLE_WIDTH];
+
 HANDLE MY_HANDLE;
 
 enum Eenviroment
@@ -60,6 +68,12 @@ int inventory_id = 0;
 Tenviroment enviroment_map[MAP_HEIGHT][MAP_WIDTH];
 
 Tentity entity_map[ENTITY_CAPACITY];
+
+void SetBuffer(int x, int y, char symbol, int color)
+{
+	MY_BUFFER[y][x].symbol = symbol;
+	MY_BUFFER[y][x].color = color;
+}
 
 void SetCursorPosition(int x, int y)
 {
@@ -126,7 +140,6 @@ int IsEntityCell(int x, int y)
 
 void PrintEnviromentMap()
 {
-	SetCursorPosition(0, 6);
 	int entity_id;
 	for (int i = 0; i < MAP_HEIGHT; i++)
 	{
@@ -134,11 +147,10 @@ void PrintEnviromentMap()
 		{
 			entity_id = IsEntityCell(j, i);
 			if (entity_id >= 0)
-				PrintSymbol(entity_map[entity_id].symbol, entity_map[entity_id].color);
+				SetBuffer(j, i + 6, entity_map[entity_id].symbol, entity_map[entity_id].color);
 			else
-				PrintSymbol(enviroment_map[i][j].symbol, enviroment_map[i][j].color);
+				SetBuffer(j, i + 6, enviroment_map[i][j].symbol, enviroment_map[i][j].color);
 		}
-		PrintSymbol('\n', WHITE);
 	}
 }
 
@@ -190,34 +202,25 @@ void UpdateEntities()
 
 void PrintUI()
 {
-	SetCursorPosition(0, 0);
 	for (int i = 0; i < 6; i++)
-	{
 		for (int j = 0; j < MAP_WIDTH; j++)
 		{
 			if ((i == 0 && (j == 0 || j == MAP_WIDTH - 1)) ||
 				(i == 5 && (j == 0 || j == MAP_WIDTH - 1)))
-				PrintSymbol('#', WHITE);
+				SetBuffer(j, i, '#', WHITE);
 			else if (j == 0 || j == MAP_WIDTH - 1)
-				PrintSymbol('|', WHITE);
+				SetBuffer(j, i, '|', WHITE);
 			else if (i == 0 || i == 5)
-				PrintSymbol('-', WHITE);
+				SetBuffer(j, i, '-', WHITE);
 			else
-				PrintSymbol(' ', WHITE);
+				SetBuffer(j, i, ' ', WHITE);
 		}
-		PrintSymbol('\n', WHITE);
-	}
 
 	for (int i = 0; i < 8; i++)
-	{
-		SetCursorPosition(3 + i % 4 * 2, 2 + i / 4);
-		PrintSymbol('.', WHITE);
-	}
+		SetBuffer(3 + i % 4 * 2, 2 + i / 4, '.', WHITE);
 
-	SetCursorPosition(2 + inventory_id % 4 * 2, 2 + inventory_id / 4);
-	PrintSymbol('[', WHITE);
-	SetCursorPosition(2 + inventory_id % 4 * 2 + 2, 2 + inventory_id / 4);
-	PrintSymbol(']', WHITE);
+	SetBuffer(2 + inventory_id % 4 * 2, 2 + inventory_id / 4, '[', WHITE);
+	SetBuffer(2 + inventory_id % 4 * 2 + 2, 2 + inventory_id / 4, ']', WHITE);
 }
 
 int main()
@@ -235,6 +238,14 @@ int main()
 	{
 		PrintUI();
 		PrintEnviromentMap();
+
+		SetCursorPosition(0, 0);
+		for (int i = 0; i < CONSOLE_HEIGHT; i++)
+		{
+			for (int j = 0; j < CONSOLE_WIDTH; j++)
+				PrintSymbol(MY_BUFFER[i][j].symbol, MY_BUFFER[i][j].color);
+			PrintSymbol('\n', WHITE);
+		}
 
 		if (GetAsyncKeyState(VK_W)) MoveEntity(&entity_map[0], 0, -1);
 		if (GetAsyncKeyState(VK_S)) MoveEntity(&entity_map[0], 0, 1);
