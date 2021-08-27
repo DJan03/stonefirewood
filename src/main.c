@@ -24,6 +24,8 @@
 #define YELLOW 14
 #define WHITE 15
 
+#define ENTITY_CAPACITY 5
+
 HANDLE MY_HANDLE;
 
 enum Eenviroment
@@ -40,7 +42,17 @@ typedef struct Senviroment
 	int type;
 } Tenviroment;
 
+typedef struct Sentity
+{
+	char symbol;
+	int color;
+	int x;
+	int y;
+} Tentity;
+
 Tenviroment enviroment_map[MAP_HEIGHT][MAP_WIDTH];
+
+Tentity entity_map[ENTITY_CAPACITY];
 
 void BuildEnviromentMap()
 {
@@ -68,17 +80,88 @@ void BuildEnviromentMap()
 		}
 }
 
-void PrintSybmol(char symbol, int color)
+void PrintSymbol(char symbol, int color)
 {
 	SetConsoleTextAttribute(MY_HANDLE, color);
 	printf("%c", symbol);
 }
 
+int IsEntityCell(int x, int y)
+{
+	for (int i = 0; i < ENTITY_CAPACITY; i++)
+	{
+		if (entity_map[i].x == x && entity_map[i].y == y)
+			return (i);
+	}
+	return (-1);
+}
+
 void PrintEnviromentMap()
 {
+	int entity_id;
 	for (int i = 0; i < MAP_HEIGHT; i++)
 		for (int j = 0; j < MAP_WIDTH; j++)
-			PrintSybmol(enviroment_map[i][j].symbol, enviroment_map[i][j].color);
+		{
+			entity_id = IsEntityCell(j, i);
+			if (entity_id >= 0)
+				PrintSymbol(entity_map[entity_id].symbol, entity_map[entity_id].color);
+			else
+				PrintSymbol(enviroment_map[i][j].symbol, enviroment_map[i][j].color);
+		}
+}
+
+int InBounds(int x, int y)
+{
+	return (x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT);
+}
+
+void MoveEntity(Tentity *entity, int dx, int dy)
+{
+	int newx = entity->x + dx;
+	int newy = entity->y + dy;
+
+	if (InBounds(newx, newy))
+	{
+		if (enviroment_map[newy][newx].type == GRASS)
+		{
+			entity->x = newx;
+			entity->y = newy;
+		}
+	}
+}
+
+void BuildEntityMap()
+{
+	entity_map[0].x = MAP_WIDTH / 2;
+	entity_map[0].y = MAP_HEIGHT / 2;
+	entity_map[0].symbol = '@';
+	entity_map[0].color = YELLOW;
+	for (int i = 1; i < ENTITY_CAPACITY; i++)
+	{
+		entity_map[i].x = MAP_WIDTH / 2 + rand() % 10 - 5;
+		entity_map[i].y = MAP_HEIGHT / 4 + rand() % 10 - 5;
+		entity_map[i].symbol = 'h';
+		entity_map[i].color = DARK_YELLOW;
+	}
+}
+
+void UpdateEntities()
+{
+	for (int i = 1; i < ENTITY_CAPACITY; i++)
+	{
+		if (rand() % 5)
+		{
+			MoveEntity(&entity_map[i], rand() % 3 - 1, rand() % 3 - 1);
+		}
+	}
+}
+
+void SetCursorPosition(int x, int y)
+{
+	COORD coord = {0};
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(MY_HANDLE, coord);
 }
 
 void SetWindowSize()
@@ -103,9 +186,15 @@ int main()
 	SetWindowSize();
 
 	BuildEnviromentMap();
+	BuildEntityMap();
 
-	PrintEnviromentMap();
+	while (GetKeyState(VK_ESCAPE) >= 0)
+	{
+		SetCursorPosition(0, 0);
+		PrintEnviromentMap();
 
-	getchar();
+		UpdateEntities();
+	}
+
 	return 0;
 }
