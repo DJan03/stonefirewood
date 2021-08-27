@@ -105,6 +105,7 @@ void PrintEnviromentMap()
 {
 	int entity_id;
 	for (int i = 0; i < MAP_HEIGHT; i++)
+	{
 		for (int j = 0; j < MAP_WIDTH; j++)
 		{
 			entity_id = IsEntityCell(j, i);
@@ -113,6 +114,8 @@ void PrintEnviromentMap()
 			else
 				PrintSymbol(enviroment_map[i][j].symbol, enviroment_map[i][j].color);
 		}
+		PrintSymbol('\n', WHITE);
+	}
 }
 
 int InBounds(int x, int y)
@@ -172,14 +175,34 @@ void SetCursorPosition(int x, int y)
 void SetWindowSize()
 {
 	COORD coord = {};
-	coord.X = (SHORT)(CONSOLE_WIDTH);
+	coord.X = (SHORT)(CONSOLE_WIDTH) + 2;
 	coord.Y = (SHORT)(CONSOLE_HEIGHT);
 	SetConsoleScreenBufferSize(MY_HANDLE, coord);
 
 	SMALL_RECT rect = {};
-	rect.Bottom = coord.Y - 1;
-	rect.Right = coord.X - 1;
+	rect.Bottom = coord.Y;
+	rect.Right = coord.X;
 	SetConsoleWindowInfo(MY_HANDLE, TRUE, &rect);
+}
+
+void PrintUI()
+{
+	for (int i = 0; i < 6; i++)
+	{
+		for (int j = 0; j < MAP_WIDTH; j++)
+		{
+			if ((i == 0 && (j == 0 || j == MAP_WIDTH - 1)) ||
+				(i == 5 && (j == 0 || j == MAP_WIDTH - 1)))
+				PrintSymbol('#', WHITE);
+			else if (j == 0 || j == MAP_WIDTH - 1)
+				PrintSymbol('|', WHITE);
+			else if (i == 0 || i == 5)
+				PrintSymbol('-', WHITE);
+			else
+				PrintSymbol(' ', WHITE);
+		}
+		PrintSymbol('\n', WHITE);
+	}
 }
 
 int main()
@@ -196,6 +219,7 @@ int main()
 	while (GetKeyState(VK_ESCAPE) >= 0)
 	{
 		SetCursorPosition(0, 0);
+		PrintUI();
 		PrintEnviromentMap();
 
 		if (GetAsyncKeyState(VK_W)) MoveEntity(&entity_map[0], 0, -1);
