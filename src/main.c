@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <windows.h>
+#include <time.h>
 
 #define CONSOLE_WIDTH 60
 #define CONSOLE_HEIGHT 30
@@ -234,6 +235,9 @@ int main()
 	BuildEnviromentMap();
 	BuildEntityMap();
 
+	double deltaTime;
+	double oldTime;
+
 	while (GetKeyState(VK_ESCAPE) >= 0)
 	{
 		PrintUI();
@@ -255,6 +259,12 @@ int main()
 		if (GetAsyncKeyState(VK_TAB)) inventory_id = (inventory_id + 1) % 8;
 
 		UpdateEntities();
+
+		deltaTime = clock() - oldTime;
+		SetCursorPosition(0, CONSOLE_WIDTH - 1);
+		SetConsoleTextAttribute(MY_HANDLE, GREEN);
+		printf("%f", (1000.0 / deltaTime));
+		oldTime = clock();
 	}
 
 	return 0;
