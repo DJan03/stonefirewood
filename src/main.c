@@ -4,6 +4,9 @@
 #define CONSOLE_WIDTH 60
 #define CONSOLE_HEIGHT 30
 
+#define MAP_WIDTH 60
+#define MAP_HEIGHT 20
+
 #define BLACK 0
 #define DARK_BLUE 1
 #define DARK_GREEN 2
@@ -23,6 +26,37 @@
 
 HANDLE MY_HANDLE;
 
+typedef struct Senviroment
+{
+	char symbol;
+	int color;
+} Tenviroment;
+
+Tenviroment enviroment_map[MAP_HEIGHT][MAP_WIDTH];
+
+void BuildEnviromentMap()
+{
+	for (int i = 0; i < MAP_HEIGHT; i++)
+		for (int j = 0; j < MAP_WIDTH; j++)
+		{
+			enviroment_map[i][j].symbol = rand() % 2 ? '\"' : '^';
+			enviroment_map[i][j].color = rand() % 2 ? GREEN : DARK_GREEN;
+		}
+}
+
+void PrintSybmol(char symbol, int color)
+{
+	SetConsoleTextAttribute(MY_HANDLE, color);
+	printf("%c", symbol);
+}
+
+void PrintEnviromentMap()
+{
+	for (int i = 0; i < MAP_HEIGHT; i++)
+		for (int j = 0; j < MAP_WIDTH; j++)
+			PrintSybmol(enviroment_map[i][j].symbol, enviroment_map[i][j].color);
+}
+
 void SetWindowSize()
 {
 	COORD coord = {};
@@ -36,25 +70,15 @@ void SetWindowSize()
 	SetConsoleWindowInfo(MY_HANDLE, TRUE, &rect);
 }
 
-void Print(const char *message, int color)
-{
-	SetConsoleTextAttribute(MY_HANDLE, color);
-	printf("%s", message);
-}
-
 int main()
 {
 	MY_HANDLE = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	SetWindowSize();
 
-	Print("Hello ", WHITE);
-	Print("W", RED);
-	Print("O", DARK_YELLOW);
-	Print("R", YELLOW);
-	Print("L", GREEN);
-	Print("D", CYAN);
-	Print("!", BLUE);
+	BuildEnviromentMap();
+
+	PrintEnviromentMap();
 
 	getchar();
 	return 0;
