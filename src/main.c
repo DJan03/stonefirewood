@@ -24,6 +24,11 @@
 #define YELLOW 14
 #define WHITE 15
 
+#define VK_W 0x57
+#define VK_A 0x41
+#define VK_S 0x53
+#define VK_D 0x44
+
 #define ENTITY_CAPACITY 5
 
 HANDLE MY_HANDLE;
@@ -192,6 +197,11 @@ int main()
 	{
 		SetCursorPosition(0, 0);
 		PrintEnviromentMap();
+
+		if (GetAsyncKeyState(VK_W)) MoveEntity(&entity_map[0], 0, -1);
+		if (GetAsyncKeyState(VK_S)) MoveEntity(&entity_map[0], 0, 1);
+		if (GetAsyncKeyState(VK_A)) MoveEntity(&entity_map[0], -1, 0);
+		if (GetAsyncKeyState(VK_D)) MoveEntity(&entity_map[0], 1, 0);
 
 		UpdateEntities();
 	}
