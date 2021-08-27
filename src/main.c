@@ -26,10 +26,18 @@
 
 HANDLE MY_HANDLE;
 
+enum Eenviroment
+{
+	GRASS,
+	ROCK,
+	WATER
+};
+
 typedef struct Senviroment
 {
 	char symbol;
 	int color;
+	int type;
 } Tenviroment;
 
 Tenviroment enviroment_map[MAP_HEIGHT][MAP_WIDTH];
@@ -39,8 +47,24 @@ void BuildEnviromentMap()
 	for (int i = 0; i < MAP_HEIGHT; i++)
 		for (int j = 0; j < MAP_WIDTH; j++)
 		{
-			enviroment_map[i][j].symbol = rand() % 2 ? '\"' : '^';
-			enviroment_map[i][j].color = rand() % 2 ? GREEN : DARK_GREEN;
+			if (j + i / 2 + rand() % 2 < 15)
+			{
+				enviroment_map[i][j].symbol = rand() % 2 ? '~' : '=';
+				enviroment_map[i][j].color = (i + j / 10) % 2 ? CYAN : BLUE;
+				enviroment_map[i][j].type = WATER;
+			}
+			else if (rand() % 100 < 5)
+			{
+				enviroment_map[i][j].symbol = rand() % 2 ? 'o' : 'n';
+				enviroment_map[i][j].color = rand() % 2 ? GRAY : LIGHT_GRAY;
+				enviroment_map[i][j].type = ROCK;
+			}
+			else
+			{
+				enviroment_map[i][j].symbol = rand() % 2 ? '\"' : '^';
+				enviroment_map[i][j].color = rand() % 2 ? GREEN : DARK_GREEN;
+				enviroment_map[i][j].type = GRASS;
+			}
 		}
 }
 
@@ -72,6 +96,8 @@ void SetWindowSize()
 
 int main()
 {
+	srand(0);
+
 	MY_HANDLE = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	SetWindowSize();
