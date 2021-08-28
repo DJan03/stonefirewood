@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include <time.h>
+#include <stdbool.h>
 
 #define CONSOLE_WIDTH 60
 #define CONSOLE_HEIGHT 30
@@ -39,6 +40,7 @@ typedef struct Ssprite
 } Tsprite;
 
 Tsprite MY_BUFFER[CONSOLE_HEIGHT][CONSOLE_WIDTH];
+bool NEED_TO_UPDATE[CONSOLE_HEIGHT][CONSOLE_WIDTH];
 
 HANDLE MY_HANDLE;
 
@@ -72,6 +74,9 @@ Tentity entity_map[ENTITY_CAPACITY];
 
 void SetBuffer(int x, int y, char symbol, int color)
 {
+	if (MY_BUFFER[y][x].symbol == symbol && MY_BUFFER[y][x].color == color)
+		return ;
+	NEED_TO_UPDATE[y][x] = TRUE;
 	MY_BUFFER[y][x].symbol = symbol;
 	MY_BUFFER[y][x].color = color;
 }
@@ -123,10 +128,12 @@ void BuildEnviromentMap()
 		}
 }
 
-void PrintSymbol(char symbol, int color)
+void PrintSymbol(int x, int y, char symbol, int color)
 {
+	SetCursorPosition(x, y);
 	SetConsoleTextAttribute(MY_HANDLE, color);
 	printf("%c", symbol);
+	NEED_TO_UPDATE[y][x] = FALSE;
 }
 
 int IsEntityCell(int x, int y)
@@ -150,7 +157,14 @@ void PrintEnviromentMap()
 			if (entity_id >= 0)
 				SetBuffer(j, i + 6, entity_map[entity_id].symbol, entity_map[entity_id].color);
 			else
+			{
 				SetBuffer(j, i + 6, enviroment_map[i][j].symbol, enviroment_map[i][j].color);
+				if (enviroment_map[i][j].type == WATER)
+					enviroment_map[i][j].color = rand() % 2 ? CYAN : BLUE;
+				if (enviroment_map[i][j].type == GRASS)
+					enviroment_map[i][j].color = rand() % 2 ? GREEN : DARK_GREEN;
+					
+			}
 		}
 	}
 }
@@ -237,6 +251,7 @@ int main()
 
 	double deltaTime;
 	double oldTime;
+	int waitTime;
 
 	while (GetKeyState(VK_ESCAPE) >= 0)
 	{
@@ -247,8 +262,8 @@ int main()
 		for (int i = 0; i < CONSOLE_HEIGHT; i++)
 		{
 			for (int j = 0; j < CONSOLE_WIDTH; j++)
-				PrintSymbol(MY_BUFFER[i][j].symbol, MY_BUFFER[i][j].color);
-			PrintSymbol('\n', WHITE);
+				if (NEED_TO_UPDATE[i][j] == TRUE)
+					PrintSymbol(j, i, MY_BUFFER[i][j].symbol, MY_BUFFER[i][j].color);
 		}
 
 		if (GetAsyncKeyState(VK_W)) MoveEntity(&entity_map[0], 0, -1);
@@ -260,11 +275,12 @@ int main()
 
 		UpdateEntities();
 
-		deltaTime = clock() - oldTime;
-		SetCursorPosition(0, CONSOLE_WIDTH - 1);
+		SetCursorPosition(0, 0);
 		SetConsoleTextAttribute(MY_HANDLE, GREEN);
-		printf("%f", (1000.0 / deltaTime));
+		deltaTime = clock() - oldTime;
+		printf("%5d", deltaTime > 0.001 ? (int)(1000.0 / deltaTime) : 0);
 		oldTime = clock();
+		Sleep(1000 / 20);
 	}
 
 	return 0;
