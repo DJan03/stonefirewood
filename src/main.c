@@ -249,12 +249,16 @@ int main()
 	BuildEnviromentMap();
 	BuildEntityMap();
 
-	double deltaTime;
-	double oldTime;
-	int waitTime;
+	const int FPS = 12;
+	const double frameDelay = 1000 / FPS;
+
+	double frameStart;
+	double frameTime;
 
 	while (GetKeyState(VK_ESCAPE) >= 0)
 	{
+		frameStart = clock();
+
 		PrintUI();
 		PrintEnviromentMap();
 
@@ -277,10 +281,17 @@ int main()
 
 		SetCursorPosition(0, 0);
 		SetConsoleTextAttribute(MY_HANDLE, GREEN);
-		deltaTime = clock() - oldTime;
-		printf("%5d", deltaTime > 0.001 ? (int)(1000.0 / deltaTime) : 0);
-		oldTime = clock();
-		Sleep(1000 / 20);
+		frameTime = clock() - frameStart;
+
+		if (frameDelay > frameTime)
+		{
+			Sleep(frameDelay - frameTime);
+			printf("%3d", FPS);
+		}
+		else
+		{
+			printf("%3d", (int)(1000 / frameTime));
+		}
 	}
 
 	return 0;
